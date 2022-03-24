@@ -5,9 +5,8 @@ import os
 #Images kept in memory once ingested for speed
 
 fruits =("apple", "banana", "grapes", "kiwi", "mango", "orange", "pear", "pineapple", "pomegranate", "watermelon")
-img_square_size = 20 #will be cropped to img_square_size x img_square_size
+mosaic_tile_size = 20 #will be cropped to mosaic_tile_size x mosaic_tile_size
 main_image_path = "ML_Datasets/Fruits_And_Vegetables/mosaic/input/tomatoes.jpeg"
-
 
 def get_img_filenames(img_mosaic_folder, fruits):
     img_dict = {} # keys are fruit, contains a list of paths to img files
@@ -26,7 +25,7 @@ def get_img_filenames(img_mosaic_folder, fruits):
 
     return img_dict
 
-def cropImages(key_values, img_square_size, save_path):
+def cropImages(key_values, mosaic_tile_size, save_path, save = 0):
     # converts images to Squares based on smallest dimension + returns list containing all cropped images
     cropped_img_list = []
 
@@ -35,12 +34,12 @@ def cropImages(key_values, img_square_size, save_path):
             with Image.open(imagepath) as im:
                 if im.mode != "RGB":
                     im = im.convert("RGB")
-                resized_image = ImageOps.fit(im, (img_square_size,img_square_size))
+                resized_image = ImageOps.fit(im, (mosaic_tile_size,mosaic_tile_size))
                 resized_image.path = imagepath
                 cropped_img_list.append(resized_image)
-                #saveImage(resized_image,imagepath, save_path)
+                if save == 1:
+                    saveImage(resized_image,imagepath, save_path)
     return cropped_img_list
-
 
 def saveImage(im_file, imagepath, output_filepath):
     #the filename is derived from the input_filepath
@@ -58,6 +57,7 @@ def saveImage(im_file, imagepath, output_filepath):
 def create_cropped_images():
     img_mosaic_folder = r"ML_Datasets/Fruits_And_Vegetables/train/"
     img_mosaic_intermediate_folder = r"ML_Datasets/Fruits_And_Vegetables/cropped/"
+    save_cropped_images = 0
     """
     create_cropped_images steps:
     1. Get filenames to each image
@@ -66,17 +66,31 @@ def create_cropped_images():
     """
 
     img_dict = get_img_filenames(img_mosaic_folder, fruits) # keys are fruit, contains a list of paths to img files
-    cropped_image_list = cropImages(img_dict.values(), img_square_size, img_mosaic_intermediate_folder)
+    cropped_image_list = cropImages(img_dict.values(), mosaic_tile_size, img_mosaic_intermediate_folder, save=save_cropped_images)
     print("images cropped")
     return cropped_image_list
 
+def create_mosaic(mainImage, cropped_image_list):
+    """
+    Steps:
+    1. Per mosaic tile square calculate average value of mainImage
+    2. Find mosaic tile that is closest match & insert into image
+    3. Return image
+    """
+
+    
+
+
+
 if __name__ == "__main__":
     with Image.open(main_image_path) as mainImage:
-        if ((mainImage.size[0] % img_square_size) != 0) or ((mainImage.size[1] % img_square_size) != 0):
-            print("Image dimensions %i x %i is not cleanly divisible by mosaic tile size %i" % (mainImage.size[0], mainImage.size[1], img_square_size))
+        mainImage = mainImage.convert("RGB")
+        if ((mainImage.size[0] % mosaic_tile_size) != 0) or ((mainImage.size[1] % mosaic_tile_size) != 0):
+            print("Image dimensions %i x %i is not cleanly divisible by mosaic tile size %i" % (mainImage.size[0], mainImage.size[1], mosaic_tile_size))
             quit()
         cropped_image_list = create_cropped_images()
-    create_mosaic(mainImage, cropped_image_list)
+        create_mosaic(mainImage, cropped_image_list)
+        #save image
 
     
 
