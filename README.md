@@ -6,7 +6,9 @@ Pre-release version. Needs more polish.
 
 Example use case:
 
+- Solving the perennial debate: Are tomatoes fruits or vegetables?
 
+![tomatoes_are_fruits](https://user-images.githubusercontent.com/19843342/159955932-ea7d4854-1b9e-4303-a9d8-ae1577fafed3.jpg)
 
 Credits:
 
