@@ -1,5 +1,6 @@
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, ImageStat
 import os
+import math
 
 #Dataset from https://www.kaggle.com/datasets/kritikseth/fruit-and-vegetable-image-recognition
 #Images kept in memory once ingested for speed
@@ -25,7 +26,21 @@ def get_img_filenames(img_mosaic_folder, fruits):
 
     return img_dict
 
-def cropImages(key_values, mosaic_tile_size, save_path, save = 0):
+#def calc_average(colour_band_list):
+ #   for colour in colour_band_list:
+
+def make_im_tuples(im):
+    """"
+    converts im to RGB + colour band mean tuples
+    """
+    if im.mode != "RGB":
+        im = im.convert("RGB")
+    im_statistics = ImageStat.Stat(im)
+    avgs_colour = [math.trunc(colour) for colour in im_statistics.mean] #R G B
+    
+    return (im, avgs_colour[0], avgs_colour[1], avgs_colour[2])
+    
+def crop_images(key_values, mosaic_tile_size, save_path, save = 1):
     # converts images to Squares based on smallest dimension + returns list containing all cropped images
     cropped_img_list = []
 
@@ -33,15 +48,16 @@ def cropImages(key_values, mosaic_tile_size, save_path, save = 0):
         for imagepath in key_list:
             with Image.open(imagepath) as im:
                 if im.mode != "RGB":
-                    im = im.convert("RGB")
+                    im.convert("RGB")
                 resized_image = ImageOps.fit(im, (mosaic_tile_size,mosaic_tile_size))
                 resized_image.path = imagepath
-                cropped_img_list.append(resized_image)
+                im_tuples = make_im_tuples(resized_image)
+                cropped_img_list.append(im_tuples) 
                 if save == 1:
-                    saveImage(resized_image,imagepath, save_path)
+                    save_image(resized_image,imagepath, save_path)
     return cropped_img_list
 
-def saveImage(im_file, imagepath, output_filepath):
+def save_image(im_file, imagepath, output_filepath):
     #the filename is derived from the input_filepath
     filename = imagepath.split(r"/")[-2:]
     try:
@@ -66,17 +82,19 @@ def create_cropped_images():
     """
 
     img_dict = get_img_filenames(img_mosaic_folder, fruits) # keys are fruit, contains a list of paths to img files
-    cropped_image_list = cropImages(img_dict.values(), mosaic_tile_size, img_mosaic_intermediate_folder, save=save_cropped_images)
+    cropped_image_list = crop_images(img_dict.values(), mosaic_tile_size, img_mosaic_intermediate_folder, save=save_cropped_images)
     print("images cropped")
     return cropped_image_list
 
-def create_mosaic(mainImage, cropped_image_list):
+def create_mosaic(mainImage_tuples, cropped_images_tuples):
     """
     Steps:
-    1. Per mosaic tile square calculate average value of mainImage
-    2. Find mosaic tile that is closest match & insert into image
-    3. Return image
+    Per mosaic tile find closest match & insert into mainImage
+    Return image
     """
+
+    #image tuples consist of (Im, avg_red, avg_green, avg_blue) tuples
+
 
     
 
@@ -84,12 +102,12 @@ def create_mosaic(mainImage, cropped_image_list):
 
 if __name__ == "__main__":
     with Image.open(main_image_path) as mainImage:
-        mainImage = mainImage.convert("RGB")
+        mainImage_tuples = make_im_tuples(mainImage)
         if ((mainImage.size[0] % mosaic_tile_size) != 0) or ((mainImage.size[1] % mosaic_tile_size) != 0):
             print("Image dimensions %i x %i is not cleanly divisible by mosaic tile size %i" % (mainImage.size[0], mainImage.size[1], mosaic_tile_size))
             quit()
-        cropped_image_list = create_cropped_images()
-        create_mosaic(mainImage, cropped_image_list)
+        cropped_images_tuples = create_cropped_images()
+        create_mosaic(mainImage_tuples, cropped_images_tuples)
         #save image
 
     
