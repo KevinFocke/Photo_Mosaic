@@ -1,16 +1,18 @@
 from xmlrpc.client import MAXINT
-from PIL import Image, ImageOps, ImageStat
+from PIL import Image, ImageOps, ImageStat, ImageCms
 import os
 import math
 import copy
+from tqdm import tqdm
 
-#Dataset from https://www.kaggle.com/datasets/kritikseth/fruit-and-vegetable-image-recognition
 #Images kept in memory once ingested for speed
+
 
 fruits =("apple", "banana", "grapes", "kiwi", "mango", "orange", "pear", "pineapple", "pomegranate", "watermelon")
 mosaic_tile_size = 20 #will be cropped to mosaic_tile_size x mosaic_tile_size
-main_image_path = "ML_Datasets/Fruits_And_Vegetables/mosaic/input/tomatoes.jpeg"
-mosaic_image_output_path = "ML_Datasets/Fruits_And_Vegetables/mosaic/output/tomatoes_are_fruits.jpeg"
+# Should filenames be prefixed with the mosaic_tile_size?
+main_image_input_path = r"ML_Datasets/Fruits_And_Vegetables/mosaic/input/andre-taissin-hnyZg63sRCY-unsplash.jpg"
+mosaic_image_output_path = r"ML_Datasets/Fruits_And_Vegetables/mosaic/output/tomatoes_are_fruits.jpg"
 
 def get_img_filenames(img_mosaic_folder, fruits):
     img_dict = {} # keys are fruit, contains a list of paths to img files
@@ -32,12 +34,12 @@ def get_img_filenames(img_mosaic_folder, fruits):
 #def calc_average(colour_band_list):
  #   for colour in colour_band_list:
 
-def make_im_tuples(im):
+def make_im_tuples(im, mode = "RGB"):
     """"
     converts im to RGB + colour band mean tuples
     """
     if im.mode != "RGB":
-        im = im.convert("RGB")
+        im = im.convert("RGB")   
     im_statistics = ImageStat.Stat(im)
     avgs_colour = [math.trunc(colour) for colour in im_statistics.mean] #R G B
     
@@ -46,12 +48,12 @@ def make_im_tuples(im):
 def crop_images(key_values, mosaic_tile_size, save_path, save = 1):
     # converts images to Squares based on smallest dimension + returns list containing all cropped images
     cropped_img_list = []
-
+    print("Cropping images. There are %i source folders. One progress bar per folder:" % len(key_values))
     for key_list in key_values: #key_values contains a list of lists
-        for imagepath in key_list:
+        for imagepath in tqdm(key_list):
             with Image.open(imagepath) as im:
                 if im.mode != "RGB":
-                    im.convert("RGB")
+                    im = im.convert("RGB")
                 resized_image = ImageOps.fit(im, (mosaic_tile_size,mosaic_tile_size))
                 resized_image.path = imagepath
                 im_tuples = make_im_tuples(resized_image)
@@ -63,9 +65,9 @@ def crop_images(key_values, mosaic_tile_size, save_path, save = 1):
 def save_image(im_file, output_filepath, input_imagepath =""):
     #the filename is derived from the input_filepath
     if input_imagepath: #if the object contains something
-        filename = input_imagepath.split(r"/")[-2:]
+        filename = input_imagepath.split(r"/")[-2:] #assumption: folder/filename
         try:
-            folder_path = output_filepath + filename[-2]
+            folder_path = output_filepath + filename[-2] #outputted in <fruit> folder
             os.mkdir(folder_path)
         except FileExistsError:
             pass
@@ -73,8 +75,9 @@ def save_image(im_file, output_filepath, input_imagepath =""):
         im_file.save(output_filepath, "JPEG")
         return 0
     else:
+        filename = output_filepath.split(r"/")[-1]
         try:
-            filename_len = len(output_filepath.split(r"/")[-1])
+            filename_len = len(filename)
             folder_path = output_filepath[:-filename_len]
             os.mkdir(folder_path)
         except FileExistsError:
@@ -83,9 +86,9 @@ def save_image(im_file, output_filepath, input_imagepath =""):
     return 0
         
 def create_cropped_images():
-    img_mosaic_folder = r"ML_Datasets/Fruits_And_Vegetables/test/" #where are the mosaic tiles gathered from?
+    img_mosaic_folder = r"ML_Datasets/Fruits_And_Vegetables/train/" #where are the mosaic tiles gathered from?
     img_mosaic_intermediate_folder = r"ML_Datasets/Fruits_And_Vegetables/cropped/" #where are the mosaic tiles saved?
-    save_cropped_images = 1 #should cropped_images be saved?
+    save_cropped_images = 0 #should cropped_images be saved?
     """
     create_cropped_images steps:
     1. Get filenames to each image
@@ -95,7 +98,7 @@ def create_cropped_images():
 
     img_dict = get_img_filenames(img_mosaic_folder, fruits) # keys are fruit, contains a list of paths to img files
     cropped_image_list = crop_images(img_dict.values(), mosaic_tile_size, img_mosaic_intermediate_folder, save=save_cropped_images)
-    print("images cropped")
+    print("Images cropped.")
     return cropped_image_list
 
 def find_distance(coordinates_object_1,coordinates_object_2):
@@ -103,9 +106,12 @@ def find_distance(coordinates_object_1,coordinates_object_2):
         print("Dimension Mismatch") #the dimensions do not match; eg comparing 2D object to 3D
         #TODO: Raise error
     #take euclidian distance
-    obj_dimensions = len(coordinates_object_1)
-    sum_sqr_diff = sum([(cor1 - cor2) ** 2 for cor1 in coordinates_object_1 for cor2 in coordinates_object_2]) # calc list of squared difference
-    distance = round(sum_sqr_diff ** (1/obj_dimensions),2)
+    coordinates_tuples = zip(coordinates_object_1,coordinates_object_2)
+    #red_tuples = coordinates_tuples[0]
+    #green_tuples = coordinates_tuples[1]
+    #blue_tuples = coordinates_tuples[2]
+    sum_sqr_diff = sum([(cor1 - cor2) ** 2 for cor1, cor2 in coordinates_tuples]) # calc list of squared difference
+    distance = round(sum_sqr_diff ** (1/2),2)
     return distance
 
 def find_mosaic_tile(mainImage_tuples, cropped_images_tuples):
@@ -129,7 +135,7 @@ def select_tile(im, left, upper, right, lower):
     return tile
 
 
-def create_mosaic(mainImage_tuples, cropped_images_tuples):
+def create_mosaic(mainImage_tuples, cropped_images_tuples, grayscale = 0):
     """
     Steps:
     Per mosaic tile find closest match & insert into mainImage
@@ -147,7 +153,8 @@ def create_mosaic(mainImage_tuples, cropped_images_tuples):
     #boxes start from the top-left
     row_pixel_top = 0 #at which pixel do we start row-wise?
     col_pixel_left = 0
-    for row in range(mainImage_tiles_in_width):
+    print("Creating mosaic:")
+    for row in tqdm(range(mainImage_tiles_in_width)):
         for col in range(mainImage_tiles_in_length):
             left, upper, right, lower = [col_pixel_left, row_pixel_top, col_pixel_left+mosaic_tile_size, row_pixel_top + mosaic_tile_size]
             tile_tuples = make_im_tuples(select_tile(mainImage, left, upper, right, lower))
@@ -168,7 +175,7 @@ def create_mosaic(mainImage_tuples, cropped_images_tuples):
 
 
 if __name__ == "__main__":
-    with Image.open(main_image_path) as mainImage:
+    with Image.open(main_image_input_path) as mainImage:
         mainImage_tuples = make_im_tuples(mainImage)
         if ((mainImage.size[0] % mosaic_tile_size) != 0) or ((mainImage.size[1] % mosaic_tile_size) != 0):
             print("Image dimensions %i x %i is not cleanly divisible by mosaic tile size %i" % (mainImage.size[0], mainImage.size[1], mosaic_tile_size))
@@ -176,8 +183,4 @@ if __name__ == "__main__":
         cropped_images_tuples = create_cropped_images()
         create_mosaic(mainImage_tuples, cropped_images_tuples)
         #save image
-
-    
-
-
-print("program finished")
+        print("Program finished.")
