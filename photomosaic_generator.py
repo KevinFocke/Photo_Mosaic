@@ -1,6 +1,8 @@
+from xmlrpc.client import MAXINT
 from PIL import Image, ImageOps, ImageStat
 import os
 import math
+import copy
 
 #Dataset from https://www.kaggle.com/datasets/kritikseth/fruit-and-vegetable-image-recognition
 #Images kept in memory once ingested for speed
@@ -8,6 +10,7 @@ import math
 fruits =("apple", "banana", "grapes", "kiwi", "mango", "orange", "pear", "pineapple", "pomegranate", "watermelon")
 mosaic_tile_size = 20 #will be cropped to mosaic_tile_size x mosaic_tile_size
 main_image_path = "ML_Datasets/Fruits_And_Vegetables/mosaic/input/tomatoes.jpeg"
+mosaic_image_output_path = "ML_Datasets/Fruits_And_Vegetables/mosaic/output/tomatoes_are_fruits.jpeg"
 
 def get_img_filenames(img_mosaic_folder, fruits):
     img_dict = {} # keys are fruit, contains a list of paths to img files
@@ -54,26 +57,35 @@ def crop_images(key_values, mosaic_tile_size, save_path, save = 1):
                 im_tuples = make_im_tuples(resized_image)
                 cropped_img_list.append(im_tuples) 
                 if save == 1:
-                    save_image(resized_image,imagepath, save_path)
+                    save_image(resized_image,save_path, imagepath)
     return cropped_img_list
 
-def save_image(im_file, imagepath, output_filepath):
+def save_image(im_file, output_filepath, input_imagepath =""):
     #the filename is derived from the input_filepath
-    filename = imagepath.split(r"/")[-2:]
-    try:
-        folder_path = output_filepath + filename[-2]
-        os.mkdir(folder_path)
-    except FileExistsError:
-        pass
-    output_filepath = output_filepath + filename[-2] + r"/" + filename[-1]
-    im_file.save(output_filepath, "JPEG")
-
-    return filename
+    if input_imagepath: #if the object contains something
+        filename = input_imagepath.split(r"/")[-2:]
+        try:
+            folder_path = output_filepath + filename[-2]
+            os.mkdir(folder_path)
+        except FileExistsError:
+            pass
+        output_filepath = output_filepath + filename[-2] + r"/" + filename[-1]
+        im_file.save(output_filepath, "JPEG")
+        return 0
+    else:
+        try:
+            filename_len = len(output_filepath.split(r"/")[-1])
+            folder_path = output_filepath[:-filename_len]
+            os.mkdir(folder_path)
+        except FileExistsError:
+            pass
+        im_file.save(output_filepath, "JPEG")
+    return 0
         
 def create_cropped_images():
-    img_mosaic_folder = r"ML_Datasets/Fruits_And_Vegetables/train/"
-    img_mosaic_intermediate_folder = r"ML_Datasets/Fruits_And_Vegetables/cropped/"
-    save_cropped_images = 0
+    img_mosaic_folder = r"ML_Datasets/Fruits_And_Vegetables/test/" #where are the mosaic tiles gathered from?
+    img_mosaic_intermediate_folder = r"ML_Datasets/Fruits_And_Vegetables/cropped/" #where are the mosaic tiles saved?
+    save_cropped_images = 1 #should cropped_images be saved?
     """
     create_cropped_images steps:
     1. Get filenames to each image
@@ -86,14 +98,69 @@ def create_cropped_images():
     print("images cropped")
     return cropped_image_list
 
+def find_distance(coordinates_object_1,coordinates_object_2):
+    if len(coordinates_object_1) != len(coordinates_object_2):
+        print("Dimension Mismatch") #the dimensions do not match; eg comparing 2D object to 3D
+        #TODO: Raise error
+    #take euclidian distance
+    obj_dimensions = len(coordinates_object_1)
+    sum_sqr_diff = sum([(cor1 - cor2) ** 2 for cor1 in coordinates_object_1 for cor2 in coordinates_object_2]) # calc list of squared difference
+    distance = round(sum_sqr_diff ** (1/obj_dimensions),2)
+    return distance
+
+def find_mosaic_tile(mainImage_tuples, cropped_images_tuples):
+    lowest_distance = MAXINT
+    lowest_distance_im = None
+    for tup in cropped_images_tuples:
+        cur_distance = find_distance(mainImage_tuples[1:],tup[1:])
+        if  cur_distance < lowest_distance:
+            lowest_distance = cur_distance
+            lowest_distance_im = tup[0]
+        else: pass
+    return lowest_distance_im
+
+def select_tile(im, left, upper, right, lower):
+    """
+    Takes a rectangular tile from an image
+    # crop function works by taking (left, upper, right, lower)
+    returns im
+    """
+    tile = im.crop((left, upper, right, lower))
+    return tile
+
+
 def create_mosaic(mainImage_tuples, cropped_images_tuples):
     """
     Steps:
     Per mosaic tile find closest match & insert into mainImage
     Return image
     """
-
+    # FOR EVERY tuple find_distance(mainImage_tuples[1:],cropped_images_tuples[1:])
     #image tuples consist of (Im, avg_red, avg_green, avg_blue) tuples
+
+    mainImage_length = mainImage_tuples[0].size[0]
+    mainImage_width = mainImage_tuples[0].size[1]
+    mainImage_tiles_in_length = math.trunc(mainImage_length / mosaic_tile_size)#how many tiles fit in a length?
+    mainImage_tiles_in_width = math.trunc(mainImage_width / mosaic_tile_size) # how many tiles fit in width?
+
+    mosaic_im = copy.deepcopy(mainImage_tuples[0]) #make deep copy of mainImage im
+    #boxes start from the top-left
+    row_pixel_top = 0 #at which pixel do we start row-wise?
+    col_pixel_left = 0
+    for row in range(mainImage_tiles_in_width):
+        for col in range(mainImage_tiles_in_length):
+            left, upper, right, lower = [col_pixel_left, row_pixel_top, col_pixel_left+mosaic_tile_size, row_pixel_top + mosaic_tile_size]
+            tile_tuples = make_im_tuples(select_tile(mainImage, left, upper, right, lower))
+            mosaic_tile_im = find_mosaic_tile(tile_tuples, cropped_images_tuples)
+            mosaic_im.paste(mosaic_tile_im, (left, upper, right, lower))
+            #save_image(mosaic_im, mosaic_image_output_path)
+            col_pixel_left += mosaic_tile_size
+        col_pixel_left = 0 # reset col_pixel
+        row_pixel_top += mosaic_tile_size
+    save_image(mosaic_im,mosaic_image_output_path)
+    return 0
+        
+
 
 
     
