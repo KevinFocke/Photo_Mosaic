@@ -16,10 +16,9 @@ Credits:
 - Tomatoes picture by Andre Taissin https://unsplash.com/photos/hnyZg63sRCY
 
 Dependencies:
-
 - Pillow Image Processing Library https://pillow.readthedocs.io/en/stable/
 - Progress bar https://github.com/tqdm/tqdm
 
-
+Tested on Python 3.10.2
 
 
