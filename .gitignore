@@ -129,4 +129,4 @@ dmypy.json
 .pyre/
 
 #cropped images (intermediate result can easily be computed using program)
-./images/tiles/cropped
+images/tiles/cropped
