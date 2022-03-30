@@ -128,5 +128,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-#cropped images (intermediate result can easily be computed using program)
+#Intermediate + result can easily be computed using program
 images/tiles/cropped
+images/mosaic_image/mosaic_out.jpg
