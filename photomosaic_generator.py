@@ -1,44 +1,55 @@
 from xmlrpc.client import MAXINT
 from PIL import Image, ImageOps, ImageStat, ImageCms
+from tqdm import tqdm
 import os
 import math
 import copy
-from tqdm import tqdm
+import pickle
+
 
 #Images kept in memory once ingested for speed
 
-
+#General preferences
+# Note: preferences are global; trading off security for convenience
 MOSAIC_TILE_SIZE = 20 #will be cropped to MOSAIC_TILE_SIZE x MOSAIC_TILE_SIZE
 # Should filenames be prefixed with the MOSAIC_TILE_SIZE?
 MAIN_IMAGE_INPUT_PATH = r"./images/mosaic_image/mosaic_in.jpg" #image to convert into mosaic
 MOSAIC_IMAGE_OUTPUT_PATH = r"./images/mosaic_image/mosaic_out.jpg" #where to output the mosaic image
-TILE_INPUT_PATH = r"./images/tiles/" #where are the mosaic tiles gathered from?
-MOSAIC_TILE_FOLDERS =("mango","orange","pineapple") #looks within these folders of the TILE_INPUT_PATH #TODO: Test with empty input
-SAVE_CROPPED_IMAGES = 0 #should cropped images be saved?
-IMG_MOSAIC_INTERMEDIATE_FOLDER = r"./images/tiles/cropped/" #where to save cropped images?
+TILE_INPUT_FOLDER_PATH = r"./images/tiles/" #where are the mosaic tiles gathered from?
+MOSAIC_TILE_FOLDERS =("mango","orange","pineapple") #looks within these folders of the TILE_INPUT_FOLDER_PATH 
+#TODO: Test with empty input to ingress everything from root of TILE_INPUT_FOLDER_PATH
 
-def get_img_filenames(TILE_INPUT_PATH, MOSAIC_TILE_FOLDERS):
+#Intermediate preferences
+#Pickles are prioritized over uncropped images; reasoning: takes less processing time. If no pickle is found, the proced
+USE_PICKLE = 1 #do you use a python pickle to ingress cropped images?
+MOSAIC_PICKLE_FILE_PATH = r"./images/tiles/cropped_tiles.pickle"
+SAVE_CROPPED_IMAGES = 0 #should cropped images be saved?
+SAVE_PICKLE = 1 #Do cropped images get saved to a pickle?
+MOSAIC_CROPPED_TILE_FOLDER = r"./images/tiles/cropped/" #where to save cropped images?
+
+
+def get_img_filenames(TILE_INPUT_FOLDER_PATH, MOSAIC_TILE_FOLDERS):
     img_dict = {} # keys are fruit, contains a list of paths to img files
     img_suffix = ".jpg"
 
     for fruit in MOSAIC_TILE_FOLDERS:
         try:
-            with os.scandir(TILE_INPUT_PATH + fruit) as folder:
+            with os.scandir(TILE_INPUT_FOLDER_PATH + fruit) as folder:
                 img_dict[fruit] = []
                 for dir_entry in folder:
                     if dir_entry.is_file and dir_entry.path[(-len(img_suffix)):] == img_suffix:
                         img_dict[fruit].append(dir_entry.path)
         except FileNotFoundError:
-            print(("Path %s not found"% (TILE_INPUT_PATH + fruit)) + ". Continuing to check other paths.")
+            print(("Path %s not found"% (TILE_INPUT_FOLDER_PATH + fruit)) + ". Continuing to check other paths.")
     if not img_dict: #if no contents in dict
-        quit_error("No images found in folder %s" % TILE_INPUT_PATH, "Double check relative filepath." + ("\nYour program was launched from the folder: %s \n" % os.getcwd()))
+        quit_error("No images found in folder %s" % TILE_INPUT_FOLDER_PATH, "Double check relative filepath.")
         
     return img_dict
 
 #def calc_average(colour_band_list):
  #   for colour in colour_band_list:
 
-def make_im_tuples(im, mode = "RGB"):
+def make_im_tuples(im):
     """"
     converts im to RGB + colour band mean tuples
     """
@@ -93,16 +104,16 @@ def create_cropped_images():
     """
     create_cropped_images steps:
     1. Get filenames to each image
-    2. Crop images and add to cropped_image_list
-    returns cropped_image_list
+    2. Crop images and add to cropped_image_tuples
+    returns cropped_image_tuples
     """
-    img_dict = get_img_filenames(TILE_INPUT_PATH, MOSAIC_TILE_FOLDERS) # keys are fruit, contains a list of paths to img files
-    cropped_image_list = crop_images(img_dict.values(), MOSAIC_TILE_SIZE, IMG_MOSAIC_INTERMEDIATE_FOLDER, save=SAVE_CROPPED_IMAGES)
+    img_dict = get_img_filenames(TILE_INPUT_FOLDER_PATH, MOSAIC_TILE_FOLDERS) # keys are fruit, contains a list of paths to img files
+    cropped_image_tuples = crop_images(img_dict.values(), MOSAIC_TILE_SIZE, MOSAIC_CROPPED_TILE_FOLDER, save=SAVE_CROPPED_IMAGES)
     cropping_feedback = "Images cropped."
     if SAVE_CROPPED_IMAGES == 1:
         cropping_feedback += " Images saved"
     print(cropping_feedback)
-    return cropped_image_list
+    return cropped_image_tuples
 
 def find_distance(coordinates_object_1,coordinates_object_2):
     if len(coordinates_object_1) != len(coordinates_object_2):
@@ -117,10 +128,10 @@ def find_distance(coordinates_object_1,coordinates_object_2):
     distance = round(sum_sqr_diff ** (1/2),2)
     return distance
 
-def find_mosaic_tile(mainImage_tuples, cropped_images_tuples):
+def find_mosaic_tile(mainImage_tuples, cropped_images_list):
     lowest_distance = MAXINT
     lowest_distance_im = None
-    for tup in cropped_images_tuples:
+    for tup in cropped_images_list:
         cur_distance = find_distance(mainImage_tuples[1:],tup[1:])
         if  cur_distance < lowest_distance:
             lowest_distance = cur_distance
@@ -137,14 +148,13 @@ def select_tile(im, left, upper, right, lower):
     tile = im.crop((left, upper, right, lower))
     return tile
 
-
-def create_mosaic(mainImage_tuples, cropped_images_tuples, grayscale = 0):
+def create_mosaic(mainImage_tuples, cropped_images_list, grayscale = 0):
     """
     Steps:
     Per mosaic tile find closest match & insert into mainImage
     Return image
     """
-    # FOR EVERY tuple find_distance(mainImage_tuples[1:],cropped_images_tuples[1:])
+    # FOR EVERY tuple find_distance(mainImage_tuples[1:],cropped_images_list[1:])
     #image tuples consist of (Im, avg_red, avg_green, avg_blue) tuples
 
     mainImage_length = mainImage_tuples[0].size[0]
@@ -161,7 +171,7 @@ def create_mosaic(mainImage_tuples, cropped_images_tuples, grayscale = 0):
         for col in range(mainImage_tiles_in_length):
             left, upper, right, lower = [col_pixel_left, row_pixel_top, col_pixel_left+MOSAIC_TILE_SIZE, row_pixel_top + MOSAIC_TILE_SIZE]
             tile_tuples = make_im_tuples(select_tile(mainImage, left, upper, right, lower))
-            mosaic_tile_im = find_mosaic_tile(tile_tuples, cropped_images_tuples)
+            mosaic_tile_im = find_mosaic_tile(tile_tuples, cropped_images_list)
             mosaic_im.paste(mosaic_tile_im, (left, upper, right, lower))
             #save_image(mosaic_im, MOSAIC_IMAGE_OUTPUT_PATH)
             col_pixel_left += MOSAIC_TILE_SIZE
@@ -170,17 +180,15 @@ def create_mosaic(mainImage_tuples, cropped_images_tuples, grayscale = 0):
     save_image(mosaic_im,MOSAIC_IMAGE_OUTPUT_PATH)
     return 0
         
-
-
 def quit_error(error_message = "", suggestion_message =""):
     print("\nProgram will abort because it encountered an error.")
     if error_message: #check if object contains something
         print("Error: " + error_message)
     if suggestion_message:
         print("Suggestion: " + suggestion_message)
+    print("Python file ran from: \n%s"% os.getcwd())
     print("Aborting program.")
     quit()
-
     
 def check_tile_size(im, MOSAIC_TILE_SIZE):
     if ((im.size[0] % MOSAIC_TILE_SIZE) != 0) or ((im.size[1] % MOSAIC_TILE_SIZE) != 0):
@@ -204,22 +212,78 @@ def check_tile_size(im, MOSAIC_TILE_SIZE):
 
         quit_error("Image dimensions do not match tilesize.", "Crop your image to one of these width x height dimensions:\n" + str(cropping_suggestions))
 
+def check_pickle(cropped_images_list):
+    # Is every image the correct type, crop size, mode?
+    for im_tuple in cropped_images_list:
+        if not (isinstance(im_tuple[0], Image.Image)):
+            return 1
+        if not (im_tuple[0].mode == "RGB"):
+            return 1
+        if not (im_tuple[0].size[0] == MOSAIC_TILE_SIZE or im_tuple[0].size[1] == MOSAIC_TILE_SIZE):
+            return 1
+        # Are the computed avg colour values between 0 and 255?
+        for colour in im_tuple[1:]:
+            if not (colour >= 0 or colour <= 255):
+                return 1
+
+
+def ingressPickle():
+    """
+    Returns a 1 if pickle is not valid."""
+    cropped_images_list = []
+    try:
+        with open(MOSAIC_PICKLE_FILE_PATH, "rb") as fp_pickle_path:
+            cropped_images_list = pickle.load(fp_pickle_path)
+            print("Pickle has been loaded")
+    except:
+        print("Could not open pickle file. Reverting to fallback.")
+    if (check_pickle(cropped_images_list) == 1):
+        print("Pickle file showed error during ingestion. Reverting to fallback.")
+        return 1
+
+    return cropped_images_list
+
+def egressPickle(cropped_image_list):
+        try: 
+            with open(MOSAIC_PICKLE_FILE_PATH, "wb") as fp_pickle_path:
+                pickle.dump(cropped_image_list, fp_pickle_path)
+        except:
+            print("Could not write pickle file.")
+            return 1
+
+
 
 if __name__ == "__main__":
     """
     General program flow:
-    
+
+    Open the main image.
+    If USE_PICKLE = 1, ingress the pickle into a cropped_imagelist. Else process each image in the Tile_Input_Folder_Path/{MOSAIC_TILE_FOLDERS}
+    Create a mosaic based on the lowest avg distance between a region of the main image, and every cropped_imagelist.
+    If SAVE_PICKLE = 1, egress the pickle.
+
+    cropped_image_list is a list of tuples of form:
+    (im, avgRed,avgGreen,avgBlue)
     
     """
     mainImage_tuples = ()
-    cropped_images_tuples = ()
+    cropped_images_list = ()
 
     try: 
         with Image.open(MAIN_IMAGE_INPUT_PATH) as mainImage:
             mainImage_tuples = make_im_tuples(mainImage)
-            check_tile_size(mainImage, MOSAIC_TILE_SIZE) #Check whether im divisible by tilesize
+            check_tile_size(mainImage, MOSAIC_TILE_SIZE) #Check whether image divisible by tilesize
     except FileNotFoundError:
-        quit_error("No image found in %s" % MAIN_IMAGE_INPUT_PATH, "Double check relative filepath." + ("\nYour program was launched from the folder: %s \n" % os.getcwd()))
-    cropped_images_tuples = create_cropped_images()
-    create_mosaic(mainImage_tuples, cropped_images_tuples)
+        quit_error("No image found in %s" % MAIN_IMAGE_INPUT_PATH, "Double check relative filepath.")
+
+    # Ingest tile pickle OR create cropped images.
+    pickle_valid = 0
+    if USE_PICKLE == 1:
+        if (cropped_images_list := ingressPickle()) != 1:
+            pickle_valid = 1 # the pickle is valid
+    if pickle_valid == 0:
+        cropped_images_list = create_cropped_images()
+    create_mosaic(mainImage_tuples, cropped_images_list)
+    if SAVE_PICKLE == 1:
+        egressPickle(cropped_images_list)
     print("Program finished.")
