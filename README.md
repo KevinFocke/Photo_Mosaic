@@ -2,8 +2,6 @@
 
 Converts an image into a beautiful photomosaic. 
 
-Pre-release version. Needs more polish.
-
 Example use case:
 
 - Solving the perennial debate: Are tomatoes fruits or vegetables?

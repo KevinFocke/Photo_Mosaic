@@ -6,9 +6,9 @@ Ver 2:
 
 - Allow pickle ingress for tiles instead of converting cropped images.
 
-- Generalize program so it can be used for non-fruit-related purposes.
+x Generalize program so it can be used for non-fruit-related purposes.
 
-- Add sample image folder for plug-and-play Github code.
+x Add sample image folder for plug-and-play Github code.
 
 Ver 3:
 
