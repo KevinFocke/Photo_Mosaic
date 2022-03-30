@@ -1,6 +1,6 @@
 # Photo_Mosaic
 
-Converts an image into a beautiful mosaic.
+Converts an image into a beautiful photomosaic. 
 
 Pre-release version. Needs more polish.
 
@@ -12,8 +12,9 @@ Example use case:
 
 Credits:
 
-- Project idea from https://robertheaton.com/2018/11/03/programming-project-4-photomosaics/
-- Dataset from https://www.kaggle.com/datasets/kritikseth/fruit-and-vegetable-image-recognition
+- Project idea from https://robertheaton.com/2018/11/03/programming-project-4-photomosaics/\
+- Sun image from https://www.pexels.com/photo/abstract-beach-bright-clouds-301599/ 
+- Fruits dataset from https://www.kaggle.com/datasets/kritikseth/fruit-and-vegetable-image-recognition
 - Tomatoes picture by Andre Taissin https://unsplash.com/photos/hnyZg63sRCY
 
 Dependencies:

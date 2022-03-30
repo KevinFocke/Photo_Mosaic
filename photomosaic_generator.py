@@ -8,27 +8,31 @@ from tqdm import tqdm
 #Images kept in memory once ingested for speed
 
 
-fruits =("apple", "banana", "grapes", "kiwi", "mango", "orange", "pear", "pineapple", "pomegranate", "watermelon")
 mosaic_tile_size = 20 #will be cropped to mosaic_tile_size x mosaic_tile_size
 # Should filenames be prefixed with the mosaic_tile_size?
-main_image_input_path = r"ML_Datasets/Fruits_And_Vegetables/mosaic/input/andre-taissin-hnyZg63sRCY-unsplash.jpg"
-mosaic_image_output_path = r"ML_Datasets/Fruits_And_Vegetables/mosaic/output/tomatoes_are_fruits.jpg"
+main_image_input_path = r"./images/mosaic_image/mosaic_in.jpg" #image to convert into mosaic
+mosaic_image_output_path = r"./images/mosaic_image/mosaic_out.jpg" #where to output the mosaic image
+tile_input_path = r"./images/tiles/" #where are the mosaic tiles gathered from?
+mosaic_tile_folders =("mango","orange","pineapple") #looks within these folders of the tile_input_path #TODO: Test with empty input
+save_cropped_images = 1 #should cropped images be saved?
+img_mosaic_intermediate_folder = r"./images/tiles/cropped/" #where to save cropped images?
 
-def get_img_filenames(img_mosaic_folder, fruits):
+def get_img_filenames(tile_input_path, mosaic_tile_folders):
     img_dict = {} # keys are fruit, contains a list of paths to img files
     img_suffix = ".jpg"
 
-    for fruit in fruits:
+    for fruit in mosaic_tile_folders:
         try:
-            img_dict[fruit] = []
-            paths_nested_list = []
-            with os.scandir(img_mosaic_folder + fruit) as folder:
+            with os.scandir(tile_input_path + fruit) as folder:
+                img_dict[fruit] = []
                 for dir_entry in folder:
                     if dir_entry.is_file and dir_entry.path[(-len(img_suffix)):] == img_suffix:
                         img_dict[fruit].append(dir_entry.path)
         except FileNotFoundError:
-            print("Path not found")
-
+            print(("Path %s not found"% (tile_input_path + fruit)) + ". Continuing to check other paths.")
+    if not img_dict: #if no contents in dict
+        quit_error("No images found in folder %s" % tile_input_path, "Double check relative filepath." + ("\nYour program was launched from the folder: %s \n" % os.getcwd()))
+        
     return img_dict
 
 #def calc_average(colour_band_list):
@@ -45,7 +49,7 @@ def make_im_tuples(im, mode = "RGB"):
     
     return (im, avgs_colour[0], avgs_colour[1], avgs_colour[2])
     
-def crop_images(key_values, mosaic_tile_size, save_path, save = 1):
+def crop_images(key_values, mosaic_tile_size, save_path, save = 0):
     # converts images to Squares based on smallest dimension + returns list containing all cropped images
     cropped_img_list = []
     print("Cropping images. There are %i source folders. One progress bar per folder:" % len(key_values))
@@ -68,7 +72,7 @@ def save_image(im_file, output_filepath, input_imagepath =""):
         filename = input_imagepath.split(r"/")[-2:] #assumption: folder/filename
         try:
             folder_path = output_filepath + filename[-2] #outputted in <fruit> folder
-            os.mkdir(folder_path)
+            os.makedirs(folder_path)
         except FileExistsError:
             pass
         output_filepath = output_filepath + filename[-2] + r"/" + filename[-1]
@@ -79,26 +83,25 @@ def save_image(im_file, output_filepath, input_imagepath =""):
         try:
             filename_len = len(filename)
             folder_path = output_filepath[:-filename_len]
-            os.mkdir(folder_path)
+            os.makedirs(folder_path)
         except FileExistsError:
             pass
         im_file.save(output_filepath, "JPEG")
     return 0
         
 def create_cropped_images():
-    img_mosaic_folder = r"ML_Datasets/Fruits_And_Vegetables/train/" #where are the mosaic tiles gathered from?
-    img_mosaic_intermediate_folder = r"ML_Datasets/Fruits_And_Vegetables/cropped/" #where are the mosaic tiles saved?
-    save_cropped_images = 0 #should cropped_images be saved?
     """
     create_cropped_images steps:
     1. Get filenames to each image
     2. Crop images and add to cropped_image_list
     returns cropped_image_list
     """
-
-    img_dict = get_img_filenames(img_mosaic_folder, fruits) # keys are fruit, contains a list of paths to img files
+    img_dict = get_img_filenames(tile_input_path, mosaic_tile_folders) # keys are fruit, contains a list of paths to img files
     cropped_image_list = crop_images(img_dict.values(), mosaic_tile_size, img_mosaic_intermediate_folder, save=save_cropped_images)
-    print("Images cropped.")
+    cropping_feedback = "Images cropped."
+    if save_cropped_images == 1:
+        cropping_feedback += " Images saved"
+    print(cropping_feedback)
     return cropped_image_list
 
 def find_distance(coordinates_object_1,coordinates_object_2):
@@ -169,18 +172,49 @@ def create_mosaic(mainImage_tuples, cropped_images_tuples, grayscale = 0):
         
 
 
+def quit_error(error_message = "", suggestion_message =""):
+    print("\nProgram will abort because it encountered an error.")
+    if error_message: #check if object contains something
+        print("Error: " + error_message)
+    if suggestion_message:
+        print("Suggestion: " + suggestion_message)
+    print("Aborting program.")
+    quit()
 
     
+def check_tile_size(im, mosaic_tile_size):
+    if ((im.size[0] % mosaic_tile_size) != 0) or ((im.size[1] % mosaic_tile_size) != 0):
+        print("Image dimensions %i x %i is not cleanly divisible by mosaic tile size %i" % (mainImage.size[0], mainImage.size[1], mosaic_tile_size))
 
+        # calculate smallest image dimension
+        if im.size[0] <= im.size[1]:
+            smallest_dim = im.size[0]
+        else:
+            smallest_dim = im.size[1]
+        # calculate the amount of cropping options, reduce by factor of 10.
+        if (cropping_options := smallest_dim // mosaic_tile_size // 10) > 1: pass 
+        else:
+            suggested_min_dimension = mosaic_tile_size * 10
+            quit_error("Mosaic input image too small", "Use a mosaic input image with a smallest dimension of at least %i px" % suggested_min_dimension)
+        # calculate image aspect ratio using greatest common denominator
+        im_gcd = math.gcd(im.size[0], im.size[1])
+        im_aspect_ratio = [im.size[0]//im_gcd, im.size[1]//im_gcd]
+        # suggest image dimensions
+        cropping_suggestions = [(list(map((lambda x: x * mosaic_tile_size * i), im_aspect_ratio))) for i in range(1,(cropping_options)+2)]  # maps th
+
+        quit_error("Image dimensions do not match tilesize.", "Crop your image to one of these width x height dimensions:\n" + str(cropping_suggestions))
 
 
 if __name__ == "__main__":
-    with Image.open(main_image_input_path) as mainImage:
-        mainImage_tuples = make_im_tuples(mainImage)
-        if ((mainImage.size[0] % mosaic_tile_size) != 0) or ((mainImage.size[1] % mosaic_tile_size) != 0):
-            print("Image dimensions %i x %i is not cleanly divisible by mosaic tile size %i" % (mainImage.size[0], mainImage.size[1], mosaic_tile_size))
-            quit()
-        cropped_images_tuples = create_cropped_images()
-        create_mosaic(mainImage_tuples, cropped_images_tuples)
-        #save image
-        print("Program finished.")
+    mainImage_tuples = ()
+    cropped_images_tuples = ()
+
+    try: 
+        with Image.open(main_image_input_path) as mainImage:
+            mainImage_tuples = make_im_tuples(mainImage)
+            check_tile_size(mainImage, mosaic_tile_size) #Check whether im divisible by tilesize
+    except FileNotFoundError:
+        quit_error("No image found in %s" % main_image_input_path, "Double check relative filepath." + ("\nYour program was launched from the folder: %s \n" % os.getcwd()))
+    cropped_images_tuples = create_cropped_images()
+    create_mosaic(mainImage_tuples, cropped_images_tuples)
+    print("Program finished.")

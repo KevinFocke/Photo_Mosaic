@@ -1,10 +1,10 @@
 Ver 1:
 
-- Can inefficiently create a photo_mosaic (NO PREMATURE OPTIMIZATION!)
+x Can inefficiently create a photo_mosaic (NO PREMATURE OPTIMIZATION!)
 
 Ver 2:
 
-- Allow pickle ingress for tiles instead of convert cropped images.
+- Allow pickle ingress for tiles instead of converting cropped images.
 
 - Generalize program so it can be used for non-fruit-related purposes.
 
