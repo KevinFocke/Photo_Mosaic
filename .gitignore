@@ -130,5 +130,5 @@ dmypy.json
 
 #Intermediate + result can easily be computed using program
 images/tiles/cropped
-images/tiles/pickle
 images/mosaic_image/mosaic_out.jpg
+images/tiles/cropped_tiles.pickle
