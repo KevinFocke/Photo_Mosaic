@@ -4,7 +4,9 @@ x Can inefficiently create a photo_mosaic (NO PREMATURE OPTIMIZATION!)
 
 Ver 2:
 
-- Allow pickle ingress for tiles instead of converting cropped images.
+- Allow pickle ingress for tiles instead of converting cropped images each time.
+
+- Upload package to python package library 
 
 x Generalize program so it can be used for non-fruit-related purposes.
 
