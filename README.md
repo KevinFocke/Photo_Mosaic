@@ -20,6 +20,7 @@ Dependencies:
 - Progress bar https://github.com/tqdm/tqdm
 
 Tested on Python 3.10.2 on Win 11
-dependency licenses extracted using pip-licenses
+
+Dependency licenses extracted using pip-licenses
 
 

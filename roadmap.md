@@ -21,3 +21,5 @@ Ver 3:
 Bucket values per colour. Buckets are a multiple of 2 (RGB values are between 0 and 255)
 
 - Improve colour representativeness of distance algorithm. Consider using a more accurate perceptual colour profile like LAB.
+
+- Setup continuous integration environment + testing.
