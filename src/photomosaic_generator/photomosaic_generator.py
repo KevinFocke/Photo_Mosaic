@@ -22,7 +22,7 @@ MOSAIC_TILE_FOLDERS =("mango","orange","pineapple") #looks within these folders 
 #Intermediate preferences
 #Pickles are prioritized over uncropped images; reasoning: takes less processing time. If no pickle is found, the program will fallback to processing uncropped images.
 
-USE_PICKLE = 1 #do you use a python pickle to ingress cropped images?
+USE_PICKLE = 0 #do you use a python pickle to ingress cropped images?
 SAVE_PICKLE = 1 #Do cropped images get saved to a pickle?
 SAVE_CROPPED_IMAGES = 0 #should cropped images be saved?
 MOSAIC_PICKLE_FILE_PATH = r"../../images/tiles/cropped_tiles.pickle" #where can the pickle be found?
@@ -238,6 +238,7 @@ def ingressPickle():
             print("Pickle has been loaded")
     except:
         print("Could not open pickle file. Reverting to fallback.")
+        return 1
     if (check_pickle(cropped_images_list) == 1):
         print("Pickle file showed error during ingestion. Reverting to fallback.")
         return 1
