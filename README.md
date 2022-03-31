@@ -8,6 +8,21 @@ Example use case:
 
 ![tomatoes_are_fruits](https://user-images.githubusercontent.com/19843342/159955932-ea7d4854-1b9e-4303-a9d8-ae1577fafed3.jpg)
 
+How to install & run:
+
+    git clone https://github.com/KevinFocke/Photo_Mosaic.git
+    
+    - Navigate to cloned folder
+
+    pip install -r requirements.txt
+
+    - Run Photo_Mosaic/src/photomosaic_generator/photomosaic_generator.py
+
+
+How to customize? 
+
+Change the global flags within photomosaic_generator.py
+
 Credits:
 
 - Project idea from https://robertheaton.com/2018/11/03/programming-project-4-photomosaics/
@@ -22,5 +37,7 @@ Dependencies:
 Tested on Python 3.10.2 on Win 11
 
 Dependency licenses extracted using pip-licenses
+
+Requirements can be installed
 
 
