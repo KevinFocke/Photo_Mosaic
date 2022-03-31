@@ -16,14 +16,16 @@ MOSAIC_TILE_SIZE = 20 #will be cropped to MOSAIC_TILE_SIZE x MOSAIC_TILE_SIZE
 MAIN_IMAGE_INPUT_PATH = r"../../images/mosaic_image/mosaic_in.jpg" #image to convert into mosaic
 MOSAIC_IMAGE_OUTPUT_PATH = r"../../images/mosaic_image/mosaic_out.jpg" #where to output the mosaic image
 TILE_INPUT_FOLDER_PATH = r"../../images/tiles/" #where are the mosaic tiles gathered from?
-MOSAIC_TILE_FOLDERS =("") #looks within these folders of the TILE_INPUT_FOLDER_PATH 
+MOSAIC_TILE_FOLDERS = ["mango","orange", "pineapple"]
 
-#eg. MOSAIC_TILE_FOLDERS =("mango","orange", "pineapple")
+#looks within the list of these folders of the TILE_INPUT_FOLDER_PATH 
+
+#eg. MOSAIC_TILE_FOLDERS = ["mango","orange", "pineapple"]
 # Looks for images within:
 # TILE_INPUT_FOLDER_PATH/mango
 # TILE_INPUT_FOLDER_PATH/orange
 # TILEINPUT_FOLDER_PATH/pineapple 
-# If empty string looks within TILE_INPUT_FOLDER_PATH/
+# If empty list looks within TILE_INPUT_FOLDER_PATH/
 
 
 #Intermediate preferences
@@ -31,7 +33,7 @@ MOSAIC_TILE_FOLDERS =("") #looks within these folders of the TILE_INPUT_FOLDER_P
 
 USE_PICKLE = 0 #do you use a python pickle to ingress cropped images?
 SAVE_PICKLE = 1 #Do cropped images get saved to a pickle?
-SAVE_CROPPED_IMAGES = 0 #should cropped images be saved?
+SAVE_CROPPED_IMAGES = 1 #should cropped images be saved?
 MOSAIC_PICKLE_FILE_PATH = r"../../images/tiles/cropped_tiles.pickle" #where can the pickle be found?
 MOSAIC_CROPPED_TILE_FOLDER = r"../../images/tiles/cropped/" #where to save cropped images?
 
@@ -39,29 +41,31 @@ MOSAIC_CROPPED_TILE_FOLDER = r"../../images/tiles/cropped/" #where to save cropp
 def get_img_filenames(TILE_INPUT_FOLDER_PATH, MOSAIC_TILE_FOLDERS):
     img_dict = {} # keys are fruit, contains a list of paths to img files
     img_suffix = ".jpg"
-
+    found_input = 0
     if MOSAIC_TILE_FOLDERS:
         for fruit in MOSAIC_TILE_FOLDERS:
+            img_dict[fruit] = []
             try:
                 with os.scandir(TILE_INPUT_FOLDER_PATH + fruit) as folder:
-                    img_dict[fruit] = []
                     for dir_entry in folder:
                         if dir_entry.is_file and dir_entry.path[(-len(img_suffix)):] == img_suffix:
                             img_dict[fruit].append(dir_entry.path)
+                            found_input = 1
             except FileNotFoundError:
                 print(("Path %s not found"% (TILE_INPUT_FOLDER_PATH + fruit)) + ". Continuing to check other paths.")
 
     else:
         try:
+            img_dict["root"] = []
             with os.scandir(TILE_INPUT_FOLDER_PATH) as folder:
-                img_dict["root"] = []
                 for dir_entry in folder:
-                    if dir_entry.is_file and dir_entry.path[(-len(img_suffix)):] == img_suffix:
+                    if dir_entry.is_file and dir_entry.name[(-len(img_suffix)):] == img_suffix:
                         img_dict["root"].append(dir_entry.path)
+                        found_input = 1
         except FileNotFoundError:
             print(("Path %s not found"% (TILE_INPUT_FOLDER_PATH)) + ". Continuing to check other paths.")
 
-    if not img_dict: #if no contents in dict
+    if found_input == 0: #if no images are found
         quit_error("No images found in folder %s" % TILE_INPUT_FOLDER_PATH, "Double check relative filepath.")
         
     return img_dict
@@ -90,7 +94,6 @@ def crop_images(key_values, MOSAIC_TILE_SIZE, save_path, save = 0):
                 if im.mode != "RGB":
                     im = im.convert("RGB")
                 resized_image = ImageOps.fit(im, (MOSAIC_TILE_SIZE,MOSAIC_TILE_SIZE))
-                resized_image.path = imagepath
                 im_tuples = make_im_tuples(resized_image)
                 cropped_img_list.append(im_tuples) 
                 if save == 1:
@@ -169,7 +172,7 @@ def select_tile(im, left, upper, right, lower):
     tile = im.crop((left, upper, right, lower))
     return tile
 
-def create_mosaic(mainImage_tuples, cropped_images_list, grayscale = 0):
+def create_mosaic(mainImage_tuples, cropped_images_list):
     """
     Steps:
     Per mosaic tile find closest match & insert into mainImage
