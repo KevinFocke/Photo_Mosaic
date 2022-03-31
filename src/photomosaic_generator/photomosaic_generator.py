@@ -120,7 +120,7 @@ def find_distance(coordinates_object_1,coordinates_object_2):
     if len(coordinates_object_1) != len(coordinates_object_2):
         print("Dimension Mismatch") #the dimensions do not match; eg comparing 2D object to 3D
         return maxsize #max integer effectively means this distance won't be considered
-        #TODO: Raise error
+        
     #take euclidian distance
     coordinates_tuples = zip(coordinates_object_1,coordinates_object_2)
     #red_tuples = coordinates_tuples[0]
@@ -228,7 +228,7 @@ def check_pickle(cropped_images_list):
             if not (colour >= 0 or colour <= 255):
                 return 1
 
-def ingressPickle():
+def ingress_pickle():
     """
     Returns a 1 if pickle is not valid."""
     cropped_images_list = []
@@ -245,7 +245,7 @@ def ingressPickle():
 
     return cropped_images_list
 
-def egressPickle(cropped_image_list):
+def egress_pickle(cropped_image_list):
         try: 
             with open(MOSAIC_PICKLE_FILE_PATH, "wb") as fp_pickle_path:
                 pickle.dump(cropped_image_list, fp_pickle_path)
@@ -279,11 +279,11 @@ if __name__ == "__main__":
     # Ingest tile pickle OR create cropped images.
     pickle_valid = 0
     if USE_PICKLE == 1:
-        if (cropped_images_list := ingressPickle()) != 1:
+        if (cropped_images_list := ingress_pickle()) != 1:
             pickle_valid = 1 # the pickle is valid
     if pickle_valid == 0:
         cropped_images_list = create_cropped_images()
     create_mosaic(mainImage_tuples, cropped_images_list)
     if SAVE_PICKLE == 1:
-        egressPickle(cropped_images_list)
+        egress_pickle(cropped_images_list)
     print("Program finished.")
