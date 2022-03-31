@@ -1,10 +1,10 @@
-from xmlrpc.client import MAXINT
 from PIL import Image, ImageOps, ImageStat, ImageCms
 from tqdm import tqdm
 import os
 import math
 import copy
 import pickle
+from sys import maxsize
 
 
 #Images kept in memory once ingested for speed
@@ -119,7 +119,7 @@ def create_cropped_images():
 def find_distance(coordinates_object_1,coordinates_object_2):
     if len(coordinates_object_1) != len(coordinates_object_2):
         print("Dimension Mismatch") #the dimensions do not match; eg comparing 2D object to 3D
-        return MAXINT #max integer effectively means this distance won't be considered
+        return maxsize #max integer effectively means this distance won't be considered
         #TODO: Raise error
     #take euclidian distance
     coordinates_tuples = zip(coordinates_object_1,coordinates_object_2)
@@ -131,7 +131,7 @@ def find_distance(coordinates_object_1,coordinates_object_2):
     return distance
 
 def find_mosaic_tile(mainImage_tuples, cropped_images_list):
-    lowest_distance = MAXINT
+    lowest_distance = maxsize #maximum possible int
     lowest_distance_im = None
     for tup in cropped_images_list:
         cur_distance = find_distance(mainImage_tuples[1:],tup[1:])
