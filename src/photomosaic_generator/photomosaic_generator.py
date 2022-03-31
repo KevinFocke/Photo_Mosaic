@@ -13,9 +13,9 @@ from sys import maxsize
 # Note: preferences are global; trading off security for convenience
 MOSAIC_TILE_SIZE = 20 #will be cropped to MOSAIC_TILE_SIZE x MOSAIC_TILE_SIZE
 # Should filenames be prefixed with the MOSAIC_TILE_SIZE?
-MAIN_IMAGE_INPUT_PATH = r"../images/mosaic_image/mosaic_in.jpg" #image to convert into mosaic
-MOSAIC_IMAGE_OUTPUT_PATH = r"../images/mosaic_image/mosaic_out.jpg" #where to output the mosaic image
-TILE_INPUT_FOLDER_PATH = r"../images/tiles/" #where are the mosaic tiles gathered from?
+MAIN_IMAGE_INPUT_PATH = r"../../images/mosaic_image/mosaic_in.jpg" #image to convert into mosaic
+MOSAIC_IMAGE_OUTPUT_PATH = r"../../images/mosaic_image/mosaic_out.jpg" #where to output the mosaic image
+TILE_INPUT_FOLDER_PATH = r"../../images/tiles/" #where are the mosaic tiles gathered from?
 MOSAIC_TILE_FOLDERS =("mango","orange","pineapple") #looks within these folders of the TILE_INPUT_FOLDER_PATH 
 #TODO: Test with empty input to ingress everything from root of TILE_INPUT_FOLDER_PATH
 
@@ -25,8 +25,8 @@ MOSAIC_TILE_FOLDERS =("mango","orange","pineapple") #looks within these folders 
 USE_PICKLE = 1 #do you use a python pickle to ingress cropped images?
 SAVE_PICKLE = 1 #Do cropped images get saved to a pickle?
 SAVE_CROPPED_IMAGES = 0 #should cropped images be saved?
-MOSAIC_PICKLE_FILE_PATH = r"../images/tiles/cropped_tiles.pickle" #where can the pickle be found?
-MOSAIC_CROPPED_TILE_FOLDER = r"../images/tiles/cropped/" #where to save cropped images?
+MOSAIC_PICKLE_FILE_PATH = r"../../images/tiles/cropped_tiles.pickle" #where can the pickle be found?
+MOSAIC_CROPPED_TILE_FOLDER = r"../../images/tiles/cropped/" #where to save cropped images?
 
 
 def get_img_filenames(TILE_INPUT_FOLDER_PATH, MOSAIC_TILE_FOLDERS):
