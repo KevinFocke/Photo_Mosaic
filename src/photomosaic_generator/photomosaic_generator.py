@@ -7,66 +7,69 @@ import pickle
 from sys import maxsize
 
 
-#Images kept in memory once ingested for speed
+#Images kept in memory once ingested for speed.
 
-#General preferences
-# Note: preferences are global; trading off security for convenience
-MOSAIC_TILE_SIZE = 20 #will be cropped to MOSAIC_TILE_SIZE x MOSAIC_TILE_SIZE
-# Should filenames be prefixed with the MOSAIC_TILE_SIZE?
+#General preferences:
+MOSAIC_TILE_SIZE = 20 #tiles will be cropped to squares of this size
+
 MAIN_IMAGE_INPUT_PATH = r"../../images/mosaic_image/mosaic_in.jpg" #image to convert into mosaic
 MOSAIC_IMAGE_OUTPUT_PATH = r"../../images/mosaic_image/mosaic_out.jpg" #where to output the mosaic image
-TILE_INPUT_FOLDER_PATH = r"../../images/tiles/" #where are the mosaic tiles gathered from?
-MOSAIC_TILE_FOLDERS = ["mango","orange", "pineapple"]
 
-#looks within the list of these folders of the TILE_INPUT_FOLDER_PATH 
-
-#eg. MOSAIC_TILE_FOLDERS = ["mango","orange", "pineapple"]
+#Tile input clarification.
+#eg. 
+# MOSAIC_TILE_PATH = my_tiles
+# MOSAIC_TILE_SUBFOLDERS = ["mango","orange", "pineapple"]
 # Looks for images within:
-# TILE_INPUT_FOLDER_PATH/mango
-# TILE_INPUT_FOLDER_PATH/orange
-# TILEINPUT_FOLDER_PATH/pineapple 
-# If empty list looks within TILE_INPUT_FOLDER_PATH/
+# my_tiles/mango
+# my_tiles/orange
+# my_tiles/pineapple 
+# If you set:
+# MOSAIC_TILE_SUBFOLDERS = [] 
+# Then looks for images within:
+# my_tiles/
 
+MOSAIC_TILE_PATH = r"../../images/tiles/" #where are the mosaic tiles gathered from?
+MOSAIC_TILE_SUBFOLDERS = ["mango","orange", "pineapple"]
 
-#Intermediate preferences
-#Pickles are prioritized over uncropped images; reasoning: takes less processing time. If no pickle is found, the program will fallback to processing uncropped images.
+#Processing preferences:
+#Pickles are prioritized over uncropped images. If no pickle is found, the program will fallback to processing uncropped images.
 
 USE_PICKLE = 0 #do you use a python pickle to ingress cropped images?
-SAVE_PICKLE = 1 #Do cropped images get saved to a pickle?
-SAVE_CROPPED_IMAGES = 1 #should cropped images be saved?
+SAVE_PICKLE = 0 #Do cropped images get saved to a pickle?
+SAVE_CROPPED_IMAGES = 0 #should cropped images be saved?
 MOSAIC_PICKLE_FILE_PATH = r"../../images/tiles/cropped_tiles.pickle" #where can the pickle be found?
 MOSAIC_CROPPED_TILE_FOLDER = r"../../images/tiles/cropped/" #where to save cropped images?
 
 
-def get_img_filenames(TILE_INPUT_FOLDER_PATH, MOSAIC_TILE_FOLDERS):
+def get_img_filenames(MOSAIC_TILE_PATH, MOSAIC_TILE_SUBFOLDERS):
     img_dict = {} # keys are fruit, contains a list of paths to img files
     img_suffix = ".jpg"
     found_input = 0
-    if MOSAIC_TILE_FOLDERS:
-        for fruit in MOSAIC_TILE_FOLDERS:
+    if MOSAIC_TILE_SUBFOLDERS:
+        for fruit in MOSAIC_TILE_SUBFOLDERS:
             img_dict[fruit] = []
             try:
-                with os.scandir(TILE_INPUT_FOLDER_PATH + fruit) as folder:
+                with os.scandir(MOSAIC_TILE_PATH + fruit) as folder:
                     for dir_entry in folder:
                         if dir_entry.is_file and dir_entry.path[(-len(img_suffix)):] == img_suffix:
                             img_dict[fruit].append(dir_entry.path)
                             found_input = 1
             except FileNotFoundError:
-                print(("Path %s not found"% (TILE_INPUT_FOLDER_PATH + fruit)) + ". Continuing to check other paths.")
+                print(("Path %s not found"% (MOSAIC_TILE_PATH + fruit)) + ". Continuing to check other paths.")
 
     else:
         try:
             img_dict["root"] = []
-            with os.scandir(TILE_INPUT_FOLDER_PATH) as folder:
+            with os.scandir(MOSAIC_TILE_PATH) as folder:
                 for dir_entry in folder:
                     if dir_entry.is_file and dir_entry.name[(-len(img_suffix)):] == img_suffix:
                         img_dict["root"].append(dir_entry.path)
                         found_input = 1
         except FileNotFoundError:
-            print(("Path %s not found"% (TILE_INPUT_FOLDER_PATH)) + ". Continuing to check other paths.")
+            print(("Path %s not found"% (MOSAIC_TILE_PATH)) + ". Continuing to check other paths.")
 
     if found_input == 0: #if no images are found
-        quit_error("No images found in folder %s" % TILE_INPUT_FOLDER_PATH, "Double check relative filepath.")
+        quit_error("No images found in folder %s" % MOSAIC_TILE_PATH, "Double check relative filepath.")
         
     return img_dict
 
@@ -130,7 +133,7 @@ def create_cropped_images():
     2. Crop images and add to cropped_image_tuples
     returns cropped_image_tuples
     """
-    img_dict = get_img_filenames(TILE_INPUT_FOLDER_PATH, MOSAIC_TILE_FOLDERS) # keys are fruit, contains a list of paths to img files
+    img_dict = get_img_filenames(MOSAIC_TILE_PATH, MOSAIC_TILE_SUBFOLDERS) # keys are fruit, contains a list of paths to img files
     cropped_image_tuples = crop_images(img_dict.values(), MOSAIC_TILE_SIZE, MOSAIC_CROPPED_TILE_FOLDER, save=SAVE_CROPPED_IMAGES)
     cropping_feedback = "Images cropped."
     if SAVE_CROPPED_IMAGES == 1:
@@ -280,7 +283,7 @@ if __name__ == "__main__":
     General program flow:
 
     Open the main image.
-    If USE_PICKLE = 1, ingress the pickle into a cropped_imagelist. Else process each image in the Tile_Input_Folder_Path/{MOSAIC_TILE_FOLDERS}
+    If USE_PICKLE = 1, ingress the pickle into a cropped_imagelist. Else process each image in the Tile_Input_Folder_Path/{MOSAIC_TILE_SUBFOLDERS}
     Create a mosaic based on the lowest avg distance between a region of the main image, and every cropped_imagelist.
     If SAVE_PICKLE = 1, egress the pickle.
 
