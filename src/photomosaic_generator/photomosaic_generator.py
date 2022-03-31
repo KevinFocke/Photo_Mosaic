@@ -16,8 +16,15 @@ MOSAIC_TILE_SIZE = 20 #will be cropped to MOSAIC_TILE_SIZE x MOSAIC_TILE_SIZE
 MAIN_IMAGE_INPUT_PATH = r"../../images/mosaic_image/mosaic_in.jpg" #image to convert into mosaic
 MOSAIC_IMAGE_OUTPUT_PATH = r"../../images/mosaic_image/mosaic_out.jpg" #where to output the mosaic image
 TILE_INPUT_FOLDER_PATH = r"../../images/tiles/" #where are the mosaic tiles gathered from?
-MOSAIC_TILE_FOLDERS =("mango","orange","pineapple") #looks within these folders of the TILE_INPUT_FOLDER_PATH 
-#TODO: Test with empty input to ingress everything from root of TILE_INPUT_FOLDER_PATH
+MOSAIC_TILE_FOLDERS =("") #looks within these folders of the TILE_INPUT_FOLDER_PATH 
+
+#eg. MOSAIC_TILE_FOLDERS =("mango","orange", "pineapple")
+# Looks for images within:
+# TILE_INPUT_FOLDER_PATH/mango
+# TILE_INPUT_FOLDER_PATH/orange
+# TILEINPUT_FOLDER_PATH/pineapple 
+# If empty string looks within TILE_INPUT_FOLDER_PATH/
+
 
 #Intermediate preferences
 #Pickles are prioritized over uncropped images; reasoning: takes less processing time. If no pickle is found, the program will fallback to processing uncropped images.
@@ -33,15 +40,27 @@ def get_img_filenames(TILE_INPUT_FOLDER_PATH, MOSAIC_TILE_FOLDERS):
     img_dict = {} # keys are fruit, contains a list of paths to img files
     img_suffix = ".jpg"
 
-    for fruit in MOSAIC_TILE_FOLDERS:
+    if MOSAIC_TILE_FOLDERS:
+        for fruit in MOSAIC_TILE_FOLDERS:
+            try:
+                with os.scandir(TILE_INPUT_FOLDER_PATH + fruit) as folder:
+                    img_dict[fruit] = []
+                    for dir_entry in folder:
+                        if dir_entry.is_file and dir_entry.path[(-len(img_suffix)):] == img_suffix:
+                            img_dict[fruit].append(dir_entry.path)
+            except FileNotFoundError:
+                print(("Path %s not found"% (TILE_INPUT_FOLDER_PATH + fruit)) + ". Continuing to check other paths.")
+
+    else:
         try:
-            with os.scandir(TILE_INPUT_FOLDER_PATH + fruit) as folder:
-                img_dict[fruit] = []
+            with os.scandir(TILE_INPUT_FOLDER_PATH) as folder:
+                img_dict["root"] = []
                 for dir_entry in folder:
                     if dir_entry.is_file and dir_entry.path[(-len(img_suffix)):] == img_suffix:
-                        img_dict[fruit].append(dir_entry.path)
+                        img_dict["root"].append(dir_entry.path)
         except FileNotFoundError:
-            print(("Path %s not found"% (TILE_INPUT_FOLDER_PATH + fruit)) + ". Continuing to check other paths.")
+            print(("Path %s not found"% (TILE_INPUT_FOLDER_PATH)) + ". Continuing to check other paths.")
+
     if not img_dict: #if no contents in dict
         quit_error("No images found in folder %s" % TILE_INPUT_FOLDER_PATH, "Double check relative filepath.")
         
