@@ -20,11 +20,12 @@ MOSAIC_TILE_FOLDERS =("mango","orange","pineapple") #looks within these folders 
 #TODO: Test with empty input to ingress everything from root of TILE_INPUT_FOLDER_PATH
 
 #Intermediate preferences
-#Pickles are prioritized over uncropped images; reasoning: takes less processing time. If no pickle is found, the proced
+#Pickles are prioritized over uncropped images; reasoning: takes less processing time. If no pickle is found, the program will fallback to processing uncropped images.
+
 USE_PICKLE = 1 #do you use a python pickle to ingress cropped images?
-MOSAIC_PICKLE_FILE_PATH = r"./images/tiles/cropped_tiles.pickle"
-SAVE_CROPPED_IMAGES = 0 #should cropped images be saved?
 SAVE_PICKLE = 1 #Do cropped images get saved to a pickle?
+SAVE_CROPPED_IMAGES = 0 #should cropped images be saved?
+MOSAIC_PICKLE_FILE_PATH = r"./images/tiles/cropped_tiles.pickle" #where can the pickle be found?
 MOSAIC_CROPPED_TILE_FOLDER = r"./images/tiles/cropped/" #where to save cropped images?
 
 
@@ -118,6 +119,7 @@ def create_cropped_images():
 def find_distance(coordinates_object_1,coordinates_object_2):
     if len(coordinates_object_1) != len(coordinates_object_2):
         print("Dimension Mismatch") #the dimensions do not match; eg comparing 2D object to 3D
+        return MAXINT #max integer effectively means this distance won't be considered
         #TODO: Raise error
     #take euclidian distance
     coordinates_tuples = zip(coordinates_object_1,coordinates_object_2)
@@ -226,7 +228,6 @@ def check_pickle(cropped_images_list):
             if not (colour >= 0 or colour <= 255):
                 return 1
 
-
 def ingressPickle():
     """
     Returns a 1 if pickle is not valid."""
@@ -250,8 +251,6 @@ def egressPickle(cropped_image_list):
         except:
             print("Could not write pickle file.")
             return 1
-
-
 
 if __name__ == "__main__":
     """
