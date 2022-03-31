@@ -1,6 +1,6 @@
 # Photo_Mosaic
 
-Converts an image into a beautiful photomosaic. 
+Converts an image into a beautiful RGB photomosaic. 
 
 Example use case:
 
@@ -19,6 +19,7 @@ Dependencies:
 - Pillow Image Processing Library https://pillow.readthedocs.io/en/stable/
 - Progress bar https://github.com/tqdm/tqdm
 
-Tested on Python 3.10.2
+Tested on Python 3.10.2 on Win 11
+dependency licenses extracted using pip-licenses
 
 
