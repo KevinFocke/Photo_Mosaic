@@ -1,10 +1,11 @@
 # Photo_Mosaic
 
-Converts an image into a beautiful RGB photomosaic. 
+Converts an image into a beautiful RGB photomosaic.
 
-Example use case:
-
-- Solving the perennial debate: Are tomatoes fruits or vegetables?
+Example use cases:
+- Make a portrait composed of life moments 
+- Create a mosaic of your community members 
+- Solve the perennial debate: Are tomatoes fruits or vegetables?
 
 ![tomatoes_are_fruits](https://user-images.githubusercontent.com/19843342/159955932-ea7d4854-1b9e-4303-a9d8-ae1577fafed3.jpg)
 

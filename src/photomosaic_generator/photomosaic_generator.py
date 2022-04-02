@@ -11,7 +11,6 @@ from sys import maxsize
 
 #General preferences:
 MOSAIC_TILE_SIZE = 20 #tiles will be cropped to squares of this size
-
 MAIN_IMAGE_INPUT_PATH = r"../../images/mosaic_image/mosaic_in.jpg" #image to convert into mosaic
 MOSAIC_IMAGE_OUTPUT_PATH = r"../../images/mosaic_image/mosaic_out.jpg" #where to output the mosaic image
 
@@ -39,21 +38,39 @@ SAVE_PICKLE = 0 #Do cropped images get saved to a pickle?
 SAVE_CROPPED_IMAGES = 0 #should cropped images be saved?
 MOSAIC_PICKLE_FILE_PATH = r"../../images/tiles/cropped_tiles.pickle" #where can the pickle be found?
 MOSAIC_CROPPED_TILE_FOLDER = r"../../images/tiles/cropped/" #where to save cropped images?
+IMG_SUFFIXES = ["jpg","jpeg"] #ingests files with these suffixes
+
+
+def add_image_filenames(img_dict, keyname, folder, found_input_flag):
+    """ 
+    
+    Helper function
+    Checks if every file suffix within a folder is an image. If it is, add to img_dict[keyname]
+
+    Returns img_dict, found_input_flag
+    """
+
+
+    for dir_entry in folder:
+        dir_entry_suffix = dir_entry.path.split(r".")[-1]
+        if dir_entry.is_file and (dir_entry_suffix in IMG_SUFFIXES):
+            img_dict[keyname].append(dir_entry.path)
+            found_input_flag = 1
+    
+    return (img_dict,found_input_flag)
 
 
 def get_img_filenames(MOSAIC_TILE_PATH, MOSAIC_TILE_SUBFOLDERS):
     img_dict = {} # keys are fruit, contains a list of paths to img files
-    img_suffix = ".jpg"
-    found_input = 0
+
+    found_input_flag = 0
     if MOSAIC_TILE_SUBFOLDERS:
         for fruit in MOSAIC_TILE_SUBFOLDERS:
             img_dict[fruit] = []
             try:
                 with os.scandir(MOSAIC_TILE_PATH + fruit) as folder:
-                    for dir_entry in folder:
-                        if dir_entry.is_file and dir_entry.path[(-len(img_suffix)):] == img_suffix:
-                            img_dict[fruit].append(dir_entry.path)
-                            found_input = 1
+                    img_dict, found_input_flag = add_image_filenames(img_dict,fruit,folder,found_input_flag)
+
             except FileNotFoundError:
                 print(("Path %s not found"% (MOSAIC_TILE_PATH + fruit)) + ". Continuing to check other paths.")
 
@@ -61,14 +78,11 @@ def get_img_filenames(MOSAIC_TILE_PATH, MOSAIC_TILE_SUBFOLDERS):
         try:
             img_dict["root"] = []
             with os.scandir(MOSAIC_TILE_PATH) as folder:
-                for dir_entry in folder:
-                    if dir_entry.is_file and dir_entry.name[(-len(img_suffix)):] == img_suffix:
-                        img_dict["root"].append(dir_entry.path)
-                        found_input = 1
+                img_dict, found_input_flag = add_image_filenames(img_dict, "root",folder,found_input_flag)
         except FileNotFoundError:
             print(("Path %s not found"% (MOSAIC_TILE_PATH)) + ". Continuing to check other paths.")
 
-    if found_input == 0: #if no images are found
+    if found_input_flag == 0: #if no images are found
         quit_error("No images found in folder %s" % MOSAIC_TILE_PATH, "Double check relative filepath.")
         
     return img_dict
