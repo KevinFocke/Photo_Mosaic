@@ -59,7 +59,6 @@ def add_image_filenames(img_dict, keyname, folder, found_input_flag):
     
     return (img_dict,found_input_flag)
 
-
 def get_img_filenames(MOSAIC_TILE_PATH, MOSAIC_TILE_SUBFOLDERS):
     img_dict = {} # keys are fruit, contains a list of paths to img files
 
@@ -86,9 +85,6 @@ def get_img_filenames(MOSAIC_TILE_PATH, MOSAIC_TILE_SUBFOLDERS):
         quit_error("No images found in folder %s" % MOSAIC_TILE_PATH, "Double check relative filepath.")
         
     return img_dict
-
-#def calc_average(colour_band_list):
- #   for colour in colour_band_list:
 
 def make_im_tuples(im):
     """"
@@ -210,10 +206,10 @@ def create_mosaic(mainImage_tuples, cropped_images_list):
     print("Creating mosaic:")
     for row in tqdm(range(mainImage_tiles_in_width)):
         for col in range(mainImage_tiles_in_length):
-            left, upper, right, lower = [col_pixel_left, row_pixel_top, col_pixel_left+MOSAIC_TILE_SIZE, row_pixel_top + MOSAIC_TILE_SIZE]
-            tile_tuples = make_im_tuples(select_tile(mainImage, left, upper, right, lower))
-            mosaic_tile_im = find_mosaic_tile(tile_tuples, cropped_images_list)
-            mosaic_im.paste(mosaic_tile_im, (left, upper, right, lower))
+            left, upper, right, lower = [col_pixel_left, row_pixel_top, col_pixel_left+ MOSAIC_TILE_SIZE, row_pixel_top + MOSAIC_TILE_SIZE]
+            tile_tuples = make_im_tuples(select_tile(mainImage, left, upper, right, lower)) #selects mainImage box
+            mosaic_tile_im = find_mosaic_tile (tile_tuples, cropped_images_list) #finds closest matching tile
+            mosaic_im.paste(mosaic_tile_im, (left, upper, right, lower)) #pastes in box
             #save_image(mosaic_im, MOSAIC_IMAGE_OUTPUT_PATH)
             col_pixel_left += MOSAIC_TILE_SIZE
         col_pixel_left = 0 # reset col_pixel
