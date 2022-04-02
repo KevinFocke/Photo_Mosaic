@@ -12,7 +12,7 @@ x Add sample image folder for plug-and-play Github code.
 
 Ver 3 – More efficient! More accurate!
 
-- Optimize efficiency of distance algorithm. (The program currently loops through EVERY image to find the closest match.)
+- Optimize efficiency of find_mosaic_tile algorithm. (Currently loops through EVERY image to find the closest match.)
 
 Bucket values per colour. Buckets are a multiple of 2 (RGB values are between 0 and 255)
 
