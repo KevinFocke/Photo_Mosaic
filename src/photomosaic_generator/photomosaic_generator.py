@@ -6,7 +6,7 @@ import copy
 import pickle
 from sys import maxsize
 
-#Images kept in memory once ingested for speed.
+#Preferences are global trading off security for convenience. Images kept in memory once ingested for speed.
 
 #General preferences:
 MOSAIC_TILE_SIZE = 20 #tiles will be cropped to squares of this size
@@ -38,8 +38,8 @@ SAVE_CROPPED_IMAGES = 0 #should cropped images be saved?
 MOSAIC_PICKLE_FILE_PATH = r"../../images/tiles/cropped_tiles.pickle" #where can the pickle be found?
 MOSAIC_CROPPED_TILE_FOLDER = r"../../images/tiles/cropped/" #where to save cropped images?
 IMG_SUFFIXES = ["jpg","jpeg"] #ingests files with these suffixes
-FIND_MOSAIC_TILE_ALGO = 1 #simple = 0, bucketed = 1
-BUCKETS = 256 #multiple of 2 to bucket RGB between 0 - 256
+SIMPLE_ALGO_BOUNDARY = 100 # Beyond n cropped images, the dynamically bucketed algorithm will be used instead of the SIMPLE_ALGO.
+# Clarification: The efficiency of the algorithms depends on the size
 
 def add_image_filenames(img_dict, keyname, folder, found_input_flag):
     """ 
@@ -165,20 +165,24 @@ def find_distance(coordinates_object_1,coordinates_object_2):
     distance = round(sum_sqr_diff ** (1/2),2)
     return distance
 
-def find_mosaic_tile(mainImage_tuples, cropped_images_list = [], im_buckets = []):
+def find_valid_buckets():pass
+
+def find_mosaic_tile(mainImage_tuples, cropped_images_list = []):
     lowest_distance = maxsize #maximum possible int
     lowest_distance_im = None
 
-    if FIND_MOSAIC_TILE_ALGO == 0:
+    cropped_image_len = len(cropped_images_list)
+    if cropped_image_len <= SIMPLE_ALGO_BOUNDARY:
         for tup in cropped_images_list:
             cur_distance = find_distance(mainImage_tuples[1:],tup[1:])
             if  cur_distance < lowest_distance:
                 lowest_distance = cur_distance
                 lowest_distance_im = tup[0]
             else: pass
-    elif FIND_MOSAIC_TILE_ALGO == 1:
-        pass #add bucket code
-    else: quit_error("Invalid algo selection.", "Change FIND_MOSAIC_TILE_ALGO to a valid value.")
+    
+    else:
+        pass
+
     return lowest_distance_im
 
 def select_tile(im, left, upper, right, lower):
@@ -190,41 +194,11 @@ def select_tile(im, left, upper, right, lower):
     tile = im.crop((left, upper, right, lower))
     return tile
 
-def create_buckets(cropped_images_list):
+def colour_to_bucket_index(colour, bucket_count):
+    """
+    Helper function to consistently convert a colour to a bucket index."""
 
-    # bucket structure:
-    # im_buckets_list = [red_list,blue_list,green_list]
-    # im_buckets_list[red_list] = 
-    if (BUCKETS % 2) != 0:
-        quit_error("Cannot cleanly divide images into buckets.","Make BUCKETS a multiple of 2.")
-
-    bucket_count = BUCKETS
-    colour_dim_count = 3 # R G B, three colour dimensions
-    im_buckets = tuple([list() for el in range(colour_dim_count)])
-
-    #initialize im_buckets
-    for colour in range(colour_dim_count):
-        for bucket in range(bucket_count):
-            im_buckets[colour].append(maxsize)
-
-    #fill im_buckets with images
-    for img_tuple in cropped_images_list:
-        for colour in range(colour_dim_count):
-            img_colour_bucket = math.trunc(img_tuple[colour + 1] % bucket_count)
-            if im_buckets[colour][img_colour_bucket] == maxsize:
-                im_buckets[colour][img_colour_bucket] = []
-            im_buckets[colour][img_colour_bucket].append(img_tuple[colour+1])
-
-
-
-
-
-    return (im_buckets, bucket_count)
-
-
-    
-
-
+def create_buckets():pass
 
 def create_mosaic(mainImage_tuples, cropped_images_list):
     """
@@ -245,8 +219,8 @@ def create_mosaic(mainImage_tuples, cropped_images_list):
     row_pixel_top = 0 #at which pixel do we start row-wise?
     col_pixel_left = 0
 
-    im_buckets = []
-    if FIND_MOSAIC_TILE_ALGO == 1:
+    cropped_image_len = len(cropped_images_list)
+    if cropped_image_len > SIMPLE_ALGO_BOUNDARY:
         im_buckets, bucket_count = create_buckets(cropped_images_list)
 
     print("Creating mosaic:")
@@ -254,7 +228,7 @@ def create_mosaic(mainImage_tuples, cropped_images_list):
         for col in range(mainImage_tiles_in_length):
             left, upper, right, lower = [col_pixel_left, row_pixel_top, col_pixel_left+ MOSAIC_TILE_SIZE, row_pixel_top + MOSAIC_TILE_SIZE]
             tile_tuples = make_im_tuples(select_tile(mainImage, left, upper, right, lower)) #selects mainImage box
-            mosaic_tile_im = find_mosaic_tile (tile_tuples, cropped_images_list, im_buckets) #finds closest matching tile
+            mosaic_tile_im = find_mosaic_tile (tile_tuples, cropped_images_list) #finds closest matching tile
             mosaic_im.paste(mosaic_tile_im, (left, upper, right, lower)) #pastes in box
             #save_image(mosaic_im, MOSAIC_IMAGE_OUTPUT_PATH)
             col_pixel_left += MOSAIC_TILE_SIZE
