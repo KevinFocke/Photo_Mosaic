@@ -10,16 +10,20 @@ x Generalize program so it can be used for non-fruit-related purposes.
 
 x Add sample image folder for plug-and-play Github code.
 
-Ver 3 – More efficient! More accurate!
+Ver 3 – Benchmarking & Testing
+
+Prerequisite for improving efficiency.
+
+- Setup benchmarking (run tests of large + small dataset)
+- Setup continuous integration environment
+- Setup testing
+
+Ver 4 – More efficient! More accurate!
 
 - Optimize efficiency of find_mosaic_tile algorithm. (Currently loops through EVERY image to find the closest match.)
 
-Bucket values per colour. Buckets are a multiple of 2 (RGB values are between 0 and 255)
+Dynamically bucketed for large datasets. The boundary which defines a large dataset is based on benchmarks.
 
 - Improve colour representativeness of distance algorithm. Consider using a more accurate perceptual colour profile like LAB.
 
-Ver 4 - Benchmarking + 
-- Setup continuous integration environment
-- Setup benchmarking (run tests of large + small dataset)
-- Setup testing
 - Create pipenv https://pipenv.pypa.io/en/latest/ for easy install
