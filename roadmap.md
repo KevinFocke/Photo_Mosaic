@@ -18,4 +18,8 @@ Bucket values per colour. Buckets are a multiple of 2 (RGB values are between 0 
 
 - Improve colour representativeness of distance algorithm. Consider using a more accurate perceptual colour profile like LAB.
 
-- Setup continuous integration environment + testing.
+Ver 4 - Benchmarking + 
+- Setup continuous integration environment
+- Setup benchmarking (run tests of large + small dataset)
+- Setup testing
+- Create pipenv https://pipenv.pypa.io/en/latest/ for easy install
