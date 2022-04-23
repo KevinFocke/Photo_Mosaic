@@ -40,6 +40,16 @@ Testing:
 Tested on Python 3.10.2 on Win 11
 Planning to add automated CI testing on different OSs
 
+Dependency licenses generated using pip-licenses:
+
+| Name           | Version | License                                            |
+|----------------|---------|----------------------------------------------------|
+| Pillow         | 9.0.1   | Historical Permission Notice and Disclaimer (HPND) |
+| about-time     | 3.1.1   | MIT License                                        |
+| alive-progress | 2.4.0   | MIT License                                        |
+| grapheme       | 0.6.0   | MIT                                                |
+| tqdm           | 4.63.1  | MIT License; Mozilla Public License 2.0 (MPL 2.0)  |
+
 
 
 
