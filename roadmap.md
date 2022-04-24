@@ -46,4 +46,4 @@ $ pytest –-html=report.html
 
 - Implement command-line flags: https://typer.tiangolo.com/ (same developer as FastAPI)
 
-- Create pipenv https://pipenv.pypa.io/en/latest/ for easy install
+- Create Frozen Binary Excecutable
