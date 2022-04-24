@@ -1,3 +1,5 @@
+
+
 Ver 1 – Simply works
 
 x Can inefficiently create a photo_mosaic (NO PREMATURE OPTIMIZATION!)
@@ -12,18 +14,32 @@ x Add sample image folder for plug-and-play Github code.
 
 Ver 3 – Benchmarking & Testing
 
-Prerequisite for improving efficiency.
+- (Easy) Add environment info to quit_error https://stackoverflow.com/questions/4906977/how-do-i-access-environment-variables-in-python
 
-- Setup benchmarking (run tests of large + small dataset)
-- Setup continuous integration environment
-- Setup testing
+- Add testing cases using pytest
 
-Ver 4 – More efficient! More accurate!
+- Testing using pytest https://docs.pytest.org/en/7.1.x/ 
+Also consider pytest-html for html reports
+$ pip install pytest-html
+$ pytest –-html=report.html
 
-- Optimize efficiency of find_mosaic_tile algorithm. (Currently loops through EVERY image to find the closest match.)
+-- Test using big datasets
+-- Test using small datasets
 
-Dynamically bucketed for large datasets. The boundary which defines a large dataset is based on benchmarks.
+- Add Codecov https://about.codecov.io/sign-up/
 
-- Improve colour representativeness of distance algorithm. Consider using a more accurate perceptual colour profile like LAB.
+- Add dependabot
+
+- Automate regression testing via CI (Jenkins, Buddy), also automatically generate dependencies list.
+
+Ver 4 - Algo Optimization
+
+- Optimize efficiency of find_mosaic_tile algorithm. (Currently loops through EVERY image for EVERY TILE to find the closest match.)
+
+Ver 5 - Ease Of Use
+
+- Create simple GUI https://realpython.com/python-gui-tkinter/
+
+- Implement command-line flags: https://typer.tiangolo.com/ (same developer as FastAPI)
 
 - Create pipenv https://pipenv.pypa.io/en/latest/ for easy install
