@@ -12,35 +12,11 @@ x Generalize program so it can be used for non-fruit-related purposes.
 
 x Add sample image folder for plug-and-play Github code.
 
-## Ver 3 – Benchmarking & Testing
-
-- Add environment info to quit_error 
-https://docs.python.org/3/library/os.html#os.environ
-
-- Save quit_error within logs folder
-(via sys stdout)
-
-- Add testing cases using pytest
-
-- Testing using pytest https://docs.pytest.org/en/7.1.x/ 
-Also consider pytest-html for html reports
-$ pip install pytest-html
-$ pytest –-html=report.html
-
--- Test using big datasets
--- Test using small datasets
-
-- Add Codecov https://about.codecov.io/sign-up/
-
-- Add dependabot
-
-- Automate regression testing via CI (Jenkins, Buddy)
-
-## Ver 4 - Algo Optimization
+## Ver 3 - Algo Optimization
 
 - Optimize efficiency of find_mosaic_tile algorithm. (Currently loops through EVERY image for EVERY TILE to find the closest match.)
 
-## Ver 5 - Ease Of Use
+## Ver 4 - Ease Of Use
 
 - Create simple GUI https://realpython.com/python-gui-tkinter/
 
