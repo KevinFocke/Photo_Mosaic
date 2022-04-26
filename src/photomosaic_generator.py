@@ -10,8 +10,8 @@ from sys import maxsize
 
 #General preferences:
 MOSAIC_TILE_SIZE = 20 #tiles will be cropped to squares of this size
-MAIN_IMAGE_INPUT_PATH = r"../../images/mosaic_image/mosaic_in.jpg" #image to convert into mosaic
-MOSAIC_IMAGE_OUTPUT_PATH = r"../../images/mosaic_image/mosaic_out.jpg" #where to output the mosaic image
+MAIN_IMAGE_INPUT_PATH = r"../images/mosaic_image/mosaic_in.jpg" #image to convert into mosaic
+MOSAIC_IMAGE_OUTPUT_PATH = r"../images/mosaic_image/mosaic_out.jpg" #where to output the mosaic image
 
 #Tile input clarification.
 #eg. 
@@ -26,7 +26,7 @@ MOSAIC_IMAGE_OUTPUT_PATH = r"../../images/mosaic_image/mosaic_out.jpg" #where to
 # Then looks for images within:
 # my_tiles/
 
-MOSAIC_TILE_PATH = r"../../images/tiles/" #where are the mosaic tiles gathered from?
+MOSAIC_TILE_PATH = r"../images/tiles/" #where are the mosaic tiles gathered from?
 MOSAIC_TILE_SUBFOLDERS = ["mango","orange", "pineapple"]
 
 #Processing preferences:
@@ -35,11 +35,12 @@ MOSAIC_TILE_SUBFOLDERS = ["mango","orange", "pineapple"]
 USE_PICKLE = 0 #do you use a python pickle to ingress cropped images?
 SAVE_PICKLE = 0 #Do cropped images get saved to a pickle?
 SAVE_CROPPED_IMAGES = 0 #should cropped images be saved?
-MOSAIC_PICKLE_FILE_PATH = r"../../images/tiles/cropped_tiles.pickle" #where can the pickle be found?
-MOSAIC_CROPPED_TILE_FOLDER = r"../../images/tiles/cropped/" #where to save cropped images?
+MOSAIC_PICKLE_FILE_PATH = r"../images/tiles/cropped_tiles.pickle" #where can the pickle be found?
+MOSAIC_CROPPED_TILE_FOLDER = r"../images/tiles/cropped/" #where to save cropped images?
 IMG_SUFFIXES = ["jpg","jpeg"] #ingests files with these suffixes
 SIMPLE_ALGO_BOUNDARY = 100 # Beyond n cropped images, the dynamically bucketed algorithm will be used instead of the SIMPLE_ALGO.
 # Clarification: The efficiency of the algorithms depends on the size
+DEBUG_INFO = 0
 
 def add_image_filenames(img_dict, keyname, folder, found_input_flag):
     """ 
@@ -244,6 +245,7 @@ def quit_error(error_message = "", suggestion_message =""):
     if suggestion_message:
         print("Suggestion: " + suggestion_message)
     print("Python file ran from: \n%s"% os.getcwd())
+    if DEBUG_INFO == 1: print(f"Info for debugging: \n {os.environ}")
     print("Aborting program.")
     quit()
     
