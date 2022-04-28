@@ -38,9 +38,7 @@ SAVE_CROPPED_IMAGES = 0 #should cropped images be saved?
 MOSAIC_PICKLE_FILE_PATH = r"../images/tiles/cropped_tiles.pickle" #where can the pickle be found?
 MOSAIC_CROPPED_TILE_FOLDER = r"../images/tiles/cropped/" #where to save cropped images?
 IMG_SUFFIXES = ["jpg","jpeg"] #ingests files with these suffixes
-SIMPLE_ALGO_BOUNDARY = 100 # Beyond n cropped images, the dynamically bucketed algorithm will be used instead of the SIMPLE_ALGO.
-# Clarification: The efficiency of the algorithms depends on the size
-DEBUG_INFO = 0
+DEBUG_INFO = 0 # if 1, adds python environment information to quit_error
 
 def add_image_filenames(img_dict, keyname, folder, found_input_flag):
     """ 
@@ -173,17 +171,13 @@ def find_mosaic_tile(mainImage_tuples, cropped_images_list = []):
     lowest_distance_im = None
 
     cropped_image_len = len(cropped_images_list)
-    if cropped_image_len <= SIMPLE_ALGO_BOUNDARY:
-        for tup in cropped_images_list:
-            cur_distance = find_distance(mainImage_tuples[1:],tup[1:])
-            if  cur_distance < lowest_distance:
-                lowest_distance = cur_distance
-                lowest_distance_im = tup[0]
-            else: pass
+    for tup in cropped_images_list:
+        cur_distance = find_distance(mainImage_tuples[1:],tup[1:])
+        if  cur_distance < lowest_distance:
+            lowest_distance = cur_distance
+            lowest_distance_im = tup[0]
+        else: pass
     
-    else:
-        pass
-
     return lowest_distance_im
 
 def select_tile(im, left, upper, right, lower):
@@ -198,8 +192,6 @@ def select_tile(im, left, upper, right, lower):
 def colour_to_bucket_index(colour, bucket_count):
     """
     Helper function to consistently convert a colour to a bucket index."""
-
-def create_buckets():pass
 
 def create_mosaic(mainImage_tuples, cropped_images_list):
     """
@@ -219,10 +211,6 @@ def create_mosaic(mainImage_tuples, cropped_images_list):
     #boxes start from the top-left
     row_pixel_top = 0 #at which pixel do we start row-wise?
     col_pixel_left = 0
-
-    cropped_image_len = len(cropped_images_list)
-    if cropped_image_len > SIMPLE_ALGO_BOUNDARY:
-        im_buckets, bucket_count = create_buckets(cropped_images_list)
 
     print("Creating mosaic:")
     for row in tqdm(range(mainImage_tiles_in_width)):
