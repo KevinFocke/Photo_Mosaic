@@ -52,12 +52,8 @@ VARIANT": "3.10-bullseye"
 
 NODE_VERSION": "lts/*
 
-
-
 - Pillow Image Processing Library https://pillow.readthedocs.io/en/stable/
 - Progress bar https://github.com/tqdm/tqdm
-
-Planning to add automated CI testing on different OSs
 
 Dependency licenses generated using pip-licenses:
 
