@@ -15,5 +15,3 @@ x Add sample image folder for plug-and-play Github code.
 ## Ver 3 - Ease Of Use
 
 - Implement command-line flags: https://typer.tiangolo.com/ (same developer as FastAPI)
-
-- Create Frozen Binary Excecutable
