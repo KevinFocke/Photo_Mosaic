@@ -12,13 +12,7 @@ x Generalize program so it can be used for non-fruit-related purposes.
 
 x Add sample image folder for plug-and-play Github code.
 
-## Ver 3 - Algo Optimization
-
-- Optimize efficiency of find_mosaic_tile algorithm. (Currently loops through EVERY image for EVERY TILE to find the closest match.)
-
-## Ver 4 - Ease Of Use
-
-- Create simple GUI https://realpython.com/python-gui-tkinter/
+## Ver 3 - Ease Of Use
 
 - Implement command-line flags: https://typer.tiangolo.com/ (same developer as FastAPI)
 
