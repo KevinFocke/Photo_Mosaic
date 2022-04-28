@@ -4,10 +4,10 @@
 
 This was a project-based learning experience. Skills I practiced:
 
-- Processing & analyzing image data using the Pillow library
-- Generalize the program so it can be used beyond its original use case
-- Improve program speed by caching cropped images & storing them in memory
-- Allow ingress & egress of cropped images from and to bytestreams via Python pickles. This helps avoid redundant processing.
+- Processing & analyzing image data non-destructively using the Pillow library
+- Generalizing the program so it can be used beyond its original use case
+- Improving program speed by caching cropped images & storing them in memory
+- Enabling ingress & egress of cropped images from and to bytestreams via Python pickles
 - Enabling program customization using preferences
 - Creating a user-friendly Command Line Interface (CLI).
 
