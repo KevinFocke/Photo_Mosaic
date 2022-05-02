@@ -165,8 +165,6 @@ def find_distance(coordinates_object_1,coordinates_object_2):
     distance = round(sum_sqr_diff ** (1/2),2)
     return distance
 
-def find_valid_buckets():pass
-
 def find_mosaic_tile(mainImage_tuples, cropped_images_list = []):
     lowest_distance = maxsize #maximum possible int
     lowest_distance_im = None
@@ -189,10 +187,6 @@ def select_tile(im, left, upper, right, lower):
     """
     tile = im.crop((left, upper, right, lower))
     return tile
-
-def colour_to_bucket_index(colour, bucket_count):
-    """
-    Helper function to consistently convert a colour to a bucket index."""
 
 def create_mosaic(mainImage_tuples, cropped_images_list):
     """
