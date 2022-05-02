@@ -6,7 +6,8 @@ import copy
 import pickle
 from sys import maxsize
 
-#Preferences are global trading off security for convenience. Images kept in memory once ingested for speed.
+# Images kept in memory once ingested for speed.
+# Yeah, there are too many globals. Working point in my next project!
 
 #General preferences:
 MOSAIC_TILE_SIZE = 20 #tiles will be cropped to squares of this size
