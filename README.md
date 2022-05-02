@@ -9,7 +9,6 @@ This was a project-based learning experience. Skills I practiced:
 - Improving program speed by caching cropped images & storing them in memory
 - Enabling ingress & egress of cropped images from and to bytestreams via Python pickles
 - Enabling program customization using preferences
-- Creating a user-friendly Command Line Interface (CLI).
 
 The program converts an image into a beautiful RGB photomosaic.
 
@@ -45,6 +44,9 @@ Change the global flags within photomosaic_generator.py
 - Fruits dataset from https://www.kaggle.com/datasets/kritikseth/fruit-and-vegetable-image-recognition
 - Tomatoes picture by Andre Taissin https://unsplash.com/photos/hnyZg63sRCY
 
+## Reflection
+You can find the reflection & suggested improvements at the bottom of roadmap.md
+
 ## Dependencies
 - Tested on Python 3.10.2 on VSCode Dev Container
 
@@ -54,17 +56,3 @@ NODE_VERSION": "lts/*
 
 - Pillow Image Processing Library https://pillow.readthedocs.io/en/stable/
 - Progress bar https://github.com/tqdm/tqdm
-
-Dependency licenses generated using pip-licenses:
-
-| Name           | Version | License                                            |
-|----------------|---------|----------------------------------------------------|
-| Pillow         | 9.0.1   | Historical Permission Notice and Disclaimer (HPND) |
-| about-time     | 3.1.1   | MIT License                                        |
-| alive-progress | 2.4.0   | MIT License                                        |
-| grapheme       | 0.6.0   | MIT                                                |
-| tqdm           | 4.63.1  | MIT License; Mozilla Public License 2.0 (MPL 2.0)  |
-
-
-
-
